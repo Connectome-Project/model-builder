@@ -1,0 +1,12 @@
+# Rust
+*.rlib
+*.rmeta
+/target
+**/target
+
+# Cargo
+Cargo.lock
+
+# IDEs
+.vscode/
+.idea/

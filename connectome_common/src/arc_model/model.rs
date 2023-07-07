@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use super::node_type::NodeType;
 
+#[allow(dead_code)]
 pub struct Node<T>
 where
     T: Clone + 'static,
@@ -10,6 +11,7 @@ where
     node_type: NodeType,
 }
 
+#[allow(dead_code)]
 struct ConnectionToNode<T, R>
 where
     T: Clone + 'static,
@@ -24,6 +26,7 @@ where
     R: 'static,
 {
     nodes: Vec<Node<T>>,
+    #[allow(dead_code)]
     connections: BTreeMap<Node<T>, ConnectionToNode<T, R>>,
 }
 
@@ -32,6 +35,7 @@ where
     T: Clone + 'static,
     R: 'static,
 {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Model {
             nodes: Vec::new(),

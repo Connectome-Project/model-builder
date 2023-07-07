@@ -54,10 +54,11 @@ mod tests {
 
     #[test]
     fn create_model() {
-        // let model = ThreadSafeModel::new(|| Box::new(Model::<String, ()>::new()));
-        // if let Ok(lock) = model.model.read() {
-        //     let nodes = lock.get_nodes();
-        //     assert_eq!(nodes.len(), 0);
-        // }
+        let model = ThreadSafeModel::new(|| Box::new(Model::<String, ()>::new()));
+        let read_lock = model.model.read();
+        if let Ok(lock) = read_lock {
+            let nodes = lock.get_nodes();
+            assert_eq!(nodes.len(), 0);
+        }
     }
 }

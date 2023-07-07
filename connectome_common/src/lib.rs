@@ -1,6 +1,8 @@
+mod arc_model;
 mod input;
 mod pattern;
 mod read_file;
+mod worker;
 
 use pyo3::prelude::*;
 

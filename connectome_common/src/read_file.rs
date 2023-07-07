@@ -28,7 +28,7 @@ mod tests {
 
     #[test]
     fn test_reading_txt_file() {
-        let combined_path = assemble_relative_path("src\\example.txt");
+        let combined_path = assemble_relative_path("src/example.txt");
 
         let mut lines = read_lines(combined_path).unwrap();
         let lines_iter = lines.next().unwrap().unwrap();

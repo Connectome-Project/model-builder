@@ -7,7 +7,7 @@ where
     fn get_symbol_iterator_at(&self, index: usize) -> Option<R>;
 }
 
-struct DataContainer<'a, T>
+pub struct DataContainer<'a, T>
 where
     T: 'a + IntoIterator,
 {
@@ -19,12 +19,12 @@ where
     T: 'a + IntoIterator,
 {
     #[allow(dead_code)]
-    fn new(data: &'a T) -> Self {
+    pub fn new(data: &'a T) -> Self {
         DataContainer { data }
     }
 
     #[allow(dead_code)]
-    fn get_data(&self) -> &'a T {
+    pub fn get_data(&self) -> &'a T {
         self.data
     }
 }

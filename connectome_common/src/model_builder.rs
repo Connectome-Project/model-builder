@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::error::Error;
 use std::marker::PhantomData;
 use std::str::Chars;
+use std::vec::IntoIter;
 
 use super::arc_model::NodeType;
 use super::arc_model::ThreadSafeModel;
@@ -38,19 +39,19 @@ where
     }
 }
 
-trait InnerIterable<Item: Clone + Ord + 'static> {
-    type Iterable<'a>: Iterator<Item = Item>
-    where
-        Self: 'a;
+trait InnerIterable<It: Clone + Ord + 'static> {
+    type Iterable: Iterator<Item = It>;
 
-    fn get_inner_iterable(&self) -> Self::Iterable<'_>;
+    fn get_inner_iterable(&self) -> Self::Iterable;
 }
 
-impl InnerIterable<char> for String {
-    type Iterable<'a> = Chars<'a> where Self: 'a;
+impl InnerIterable<String> for String {
+    type Iterable = IntoIter<String>;
 
-    fn get_inner_iterable(&self) -> Self::Iterable<'_> {
-        self.chars()
+    fn get_inner_iterable(&self) -> Self::Iterable {
+        let df = self.chars().map(|c| c.to_string()).collect::<Vec<String>>();
+        let iter: std::vec::IntoIter<String> = df.into_iter();
+        return iter;
     }
 }
 
@@ -64,30 +65,30 @@ pub enum ModelBuilderType {
 
 pub struct TrainingConfig {}
 
-trait ModelBuilderTrait<D> {
-    fn performAction(&mut self);
-    fn isApplicable(&self) -> bool;
+trait ModelBuilderTrait {
+    fn perform_action(&mut self);
+    fn is_applicable(&self) -> bool;
 }
 
-impl<'a, 'b, SomeInnerIterable, Additional, Dat, E, DataPoint> ModelBuilderTrait<Dat>
+impl<'a, 'b, SomeInnerIterable, Additional, Dat, E, Pattern> ModelBuilderTrait
     for ModelBuilder<
-        ThreadSafeModel<'a, 'b, DataPoint, Additional>,
+        ThreadSafeModel<'a, 'b, Pattern, Additional>,
         Dat,
         SomeInnerIterable,
         E,
-        DataPoint,
+        Pattern,
     >
 where
     E: Error,
-    DataPoint: Clone + Ord + 'static,
+    Pattern: Clone + Ord + 'static,
     Additional: 'a + 'static,
-    SomeInnerIterable: InnerIterable<DataPoint>,
+    SomeInnerIterable: InnerIterable<Pattern>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
 {
-    fn isApplicable(&self) -> bool {
+    fn is_applicable(&self) -> bool {
         true
     }
-    fn performAction(&mut self) {
+    fn perform_action(&mut self) {
         for chunk in &mut self.data {
             let read = self.model.model.read().unwrap();
             let nodes = read.get_nodes();
@@ -97,10 +98,10 @@ where
             let chunk_internal_iterator = chunk_res.get_inner_iterable();
 
             for elem in chunk_internal_iterator {
-                let found_node: Option<&crate::arc_model::Node<DataPoint>> =
+                let found_node: Option<&crate::arc_model::Node<Pattern>> =
                     nodes
                         .iter()
-                        .find(|node: &&crate::arc_model::Node<DataPoint>| {
+                        .find(|node: &&crate::arc_model::Node<Pattern>| {
                             node.pattern.cmp(&elem) == Ordering::Equal
                         });
             }
@@ -110,24 +111,30 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::File,
+        io::{BufReader, Error, Lines},
+        path::PathBuf,
+    };
+
     use super::{ModelBuilder, ModelBuilderTrait, ModelBuilderType, TrainingConfig};
     use crate::{
         arc_model::ThreadSafeModel,
-        input::{DataContainer, InputTwoWayIterable},
         read_file::{assemble_relative_path, read_lines},
     };
 
     #[test]
     fn test_model_builder_creation() {
         let input = vec!["This ist the first line.", "This is the second line."];
-        let type_of = ModelBuilderType::Builder;
-        let config = TrainingConfig {};
-        let model = ThreadSafeModel::<&str, ()>::new();
-        let combined_path = assemble_relative_path("src/example.txt");
-        let mut lines: std::io::Lines<std::io::BufReader<std::fs::File>> =
-            read_lines(combined_path).unwrap();
-        // lines.next().builder.performAction();
+        let type_of: ModelBuilderType = ModelBuilderType::Builder;
+        let config: TrainingConfig = TrainingConfig {};
+        let model = ThreadSafeModel::<'_, '_, String, ()>::new();
+        let combined_path: PathBuf = assemble_relative_path("src/example.txt");
+        let mut lines: Lines<BufReader<File>> = read_lines(combined_path).unwrap();
 
-        let builder = ModelBuilder::new(type_of, config, model, lines);
+        let mut builder = ModelBuilder::new(type_of, config, model, lines);
+        if (builder.is_applicable()) {
+            builder.perform_action();
+        }
     }
 }

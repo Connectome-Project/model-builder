@@ -1,38 +1,32 @@
 use regex::Regex;
 
-pub mod string_pattern;
-
-// pub trait PatternContent: Clone + Default {}
-
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Pattern<ContentType>
 where
-    ContentType: Clone + Default,
+    ContentType: Clone + PartialEq + Ord + Default,
 {
     content: ContentType,
 }
 
-pub trait PatternTrait {
-    type ContentType: Clone + Default;
-
-    fn get_pattern(&self) -> &Self::ContentType;
+pub trait PatternTrait
+where
+    Self: Sized,
+{
     fn concat(&self, rhs: &Self) -> Self;
     fn len(&self) -> usize;
     fn match_against(&self, regex: Regex) -> bool;
 }
 
-impl<ContentType: Clone + Default + Sized> Pattern<ContentType> {
-    #[allow(dead_code)]
-    pub fn new() -> Pattern<ContentType> {
-        Pattern::<ContentType> {
-            content: ContentType::default(),
-        }
+impl PatternTrait for String {
+    fn concat(&self, rhs: &Self) -> Self {
+        self.clone() + rhs
     }
 
-    #[allow(dead_code)]
-    pub fn build(default: &ContentType) -> Pattern<ContentType> {
-        Pattern::<ContentType> {
-            content: default.clone(),
-        }
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn match_against(&self, regex: Regex) -> bool {
+        regex.is_match(&self)
     }
 }

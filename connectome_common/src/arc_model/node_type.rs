@@ -6,3 +6,9 @@ pub enum NodeType {
     Generated,
     End,
 }
+
+impl Default for NodeType {
+    fn default() -> Self {
+        NodeType::Start
+    }
+}

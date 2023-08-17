@@ -1,16 +1,21 @@
+use crate::pattern::PatternTrait;
+
 use self::model::Model;
 pub use self::node::Node;
 pub use self::node_type::NodeType;
-use std::sync::{Arc, RwLock};
+use std::{
+    fmt::Display,
+    sync::{Arc, RwLock},
+};
 
-mod connection;
+pub mod connection;
 mod model;
 mod node;
 mod node_type;
 
 pub struct ThreadSafeModel<'a, 'b, T, R>
 where
-    T: Clone + Ord + 'static,
+    T: Clone + Ord + 'static + PatternTrait + Display + Default,
     R: 'static,
 {
     pub model: Arc<RwLock<Model<'a, 'b, T, R>>>,
@@ -18,7 +23,7 @@ where
 
 impl<'a, 'b, T, R> ThreadSafeModel<'a, 'b, T, R>
 where
-    T: Clone + Ord + 'static,
+    T: Clone + Ord + 'static + PatternTrait + Display + Default,
     R: 'static,
 {
     pub fn new() -> Self {
@@ -33,7 +38,7 @@ mod tests {
 
     // use crate::arc_model::model::Node;
 
-    use super::{model::Model, *};
+    // use super::{model::Model, *};
 
     // #[test]
     // fn create_model() {

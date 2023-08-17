@@ -1,21 +1,22 @@
-use std::collections::BTreeMap;
-
 use super::connection::ConnectionToNode;
 use super::node::Node;
+use crate::pattern::PatternTrait;
+use std::collections::BTreeMap;
+use std::fmt::Display;
 
 pub struct Model<'a, 'b, T, R>
 where
-    T: Clone + PartialEq + 'static + Ord,
+    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default,
     R: 'static,
 {
-    nodes: Vec<Node<T>>,
+    pub nodes: Vec<Node<T>>,
     #[allow(dead_code)]
-    connections_from: BTreeMap<&'b Node<T>, Vec<ConnectionToNode<'a, T, R>>>,
+    pub connections_from: BTreeMap<&'b Node<T>, Vec<ConnectionToNode<'a, T, R>>>,
 }
 
 impl<'a, 'b, T, R> Model<'a, 'b, T, R>
 where
-    T: Clone + PartialEq + 'static + Ord,
+    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default,
     R: 'static,
 {
     #[allow(dead_code)]

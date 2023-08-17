@@ -251,11 +251,12 @@ mod tests {
 
     #[test]
     fn test_find_longest_pattern() {
-        let nodes = vec![
-            &Node::new("h".to_string(), NodeType::Start),
-            &Node::new("h*".to_string(), NodeType::Start),
-            &Node::new("h*l".to_string(), NodeType::Start),
-        ];
+        let node1 = Node::new("h".to_string(), NodeType::Start);
+        let node2 = Node::new("h*".to_string(), NodeType::Start);
+        let node3 = Node::new("l".to_string(), NodeType::Start);
+
+        let nodes = vec![&node1, &node2, &node3];
+        let nodes_cloned = nodes.clone();
         let data = "hello"
             .to_string()
             .chars()
@@ -264,8 +265,8 @@ mod tests {
             .into_iter();
 
         let res: LongestPattern<'_, String> =
-            find_longest_pattern(nodes, data, "".to_string()).unwrap();
-        assert_eq!(nodes.get(2).unwrap(), &res.matching_node);
+            find_longest_pattern(nodes, data.peekable(), "".to_string()).unwrap();
+        assert_eq!(nodes_cloned.get(2).unwrap(), &res.matching_node);
         assert_eq!("hel", res.pattern_so_far);
     }
 }

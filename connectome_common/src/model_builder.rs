@@ -1,10 +1,9 @@
 use crate::arc_model::connection::ConnectionToNode;
 use crate::arc_model::Node;
-use crate::pattern::PatternTrait;
+use crate::pattern::{find_longest_pattern, PatternTrait};
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::iter::Peekable;
 use std::marker::PhantomData;
 use std::vec::IntoIter;
 
@@ -100,10 +99,13 @@ where
             if let Ok(chunk) = chunk_res {
                 let combined_nodes = combine_nodes(nodes, &nodes_to_add);
                 let chunk_internal_iterator = chunk.get_inner_iterable();
+                // let total_chunk = chunk.get_inner_iterable().reduce(|acc, e| acc.concat(&e));
+                // let chunk.
 
                 let mut previous_node: Option<Node<PatternContent>> = None;
                 find_longest_pattern(
                     combined_nodes,
+                    None,
                     chunk_internal_iterator.peekable(),
                     PatternContent::default(),
                 );
@@ -150,59 +152,6 @@ where
     }
 }
 
-struct LongestPattern<'a, Pattern>
-where
-    Pattern: Clone + Ord + 'static + PatternTrait + Display + Default,
-{
-    matching_node: &'a Node<Pattern>,
-    pattern_so_far: Pattern,
-}
-
-fn find_longest_pattern<'a, PatternContent>(
-    nodes: Vec<&'a Node<PatternContent>>,
-    mut data_iterator: Peekable<IntoIter<PatternContent>>,
-    mut pattern_so_far: PatternContent,
-) -> Option<LongestPattern<'a, PatternContent>>
-where
-    PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default,
-{
-    if let Some(d) = data_iterator.peek() {
-        let extended_pattern_so_far = pattern_so_far.concat(d);
-        let mut remaining: Vec<&Node<PatternContent>> = nodes
-            .iter()
-            .map(|f| *f)
-            .filter(|node| {
-                let reg = regex::Regex::new(&format!("r{}", extended_pattern_so_far)).unwrap();
-                return node.pattern.match_against(reg);
-            })
-            .collect::<Vec<&Node<PatternContent>>>();
-
-        remaining.sort_by(|a, b| b.cmp(a));
-
-        if let Some(first_node) = remaining.get(0) {
-            if first_node.pattern.len() > extended_pattern_so_far.len() && !nodes.is_empty() {
-                return find_longest_pattern(remaining, data_iterator, pattern_so_far);
-            }
-        }
-        // return Some(LongestPattern {
-        //     matching_node: nodes.get(0),
-        //     pattern_so_far: pattern_so_far.clone(),
-        // });
-    } else {
-        if pattern_so_far == PatternContent::default() || nodes.is_empty() {
-            return None;
-        }
-        return Some(LongestPattern {
-            matching_node: nodes.get(0).unwrap(),
-            pattern_so_far: pattern_so_far.clone(),
-        });
-    }
-    return Some(LongestPattern {
-        matching_node: nodes.get(0).unwrap(),
-        pattern_so_far: pattern_so_far.clone(),
-    });
-}
-
 fn combine_nodes<'a, PatternContent>(
     nodes: &'a Vec<Node<PatternContent>>,
     nodes_to_add: &'a Vec<Node<PatternContent>>,
@@ -218,21 +167,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        fs::File,
-        io::{BufReader, Lines},
-        path::PathBuf,
-    };
 
-    use super::{
-        find_longest_pattern, ModelBuilder, ModelBuilderTrait, ModelBuilderType, TrainingConfig,
-    };
-    use crate::{
-        arc_model::NodeType,
-        arc_model::{Node, ThreadSafeModel},
-        model_builder::{InnerIterable, LongestPattern},
-        read_file::{assemble_relative_path, read_lines},
-    };
+    use super::find_longest_pattern;
+    use crate::{arc_model::Node, arc_model::NodeType, pattern::LongestPattern};
 
     // #[test]
     // fn test_model_builder_creation() {
@@ -252,7 +189,7 @@ mod tests {
     #[test]
     fn test_find_longest_pattern() {
         let node1 = Node::new("h".to_string(), NodeType::Start);
-        let node2 = Node::new("h*".to_string(), NodeType::Start);
+        let node2 = Node::new("h.".to_string(), NodeType::Start);
         let node3 = Node::new("l".to_string(), NodeType::Start);
 
         let nodes = vec![&node1, &node2, &node3];
@@ -265,8 +202,24 @@ mod tests {
             .into_iter();
 
         let res: LongestPattern<'_, String> =
-            find_longest_pattern(nodes, data.peekable(), "".to_string()).unwrap();
-        assert_eq!(nodes_cloned.get(2).unwrap(), &res.matching_node);
-        assert_eq!("hel", res.pattern_so_far);
+            find_longest_pattern(nodes, None, data.peekable(), "".to_string()).unwrap();
+        println!("{:?}", res);
+        assert_eq!(nodes_cloned.get(1).unwrap(), &res.matching_node);
+        assert_eq!("he", res.pattern_so_far);
+    }
+
+    #[test]
+    fn test_find_longest_pattern_with_empty_nodes() {
+        let nodes = vec![];
+        let nodes_cloned = nodes.clone();
+        let data = "hello"
+            .to_string()
+            .chars()
+            .map(|c| c.to_string())
+            .collect::<Vec<String>>()
+            .into_iter();
+
+        let res = find_longest_pattern(nodes, None, data.peekable(), "".to_string());
+        assert_eq!(None, res);
     }
 }

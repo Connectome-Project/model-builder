@@ -1,5 +1,7 @@
+mod inner_iterable;
 mod longest_path;
 
+pub use inner_iterable::InnerIterable;
 pub use longest_path::{find_longest_pattern, LongestPattern};
 use regex::Regex;
 

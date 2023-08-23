@@ -40,13 +40,19 @@ mod tests {
 
     // use super::{model::Model, *};
 
-    // #[test]
-    // fn create_model() {
-    //     let arc = ThreadSafeModel::new(|| Model::<String, ()>::new());
-    //     let read_lock = arc.model.read();
-    //     if let Ok(lock) = read_lock {
-    //         let nodes = lock.get_nodes();
-    //         assert_eq!(nodes.len(), 0);
-    //     }
-    // }
+    use std::sync::{Arc, RwLock};
+
+    use super::{model::Model, ThreadSafeModel};
+
+    #[test]
+    fn create_model() {
+        let arc = ThreadSafeModel {
+            model: Arc::new(RwLock::new(Model::<'_, '_, String, ()>::new())),
+        };
+        let read_lock = arc.model.read();
+        if let Ok(lock) = read_lock {
+            let nodes = lock.get_nodes();
+            assert_eq!(nodes.len(), 0);
+        }
+    }
 }

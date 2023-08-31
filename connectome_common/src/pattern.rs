@@ -2,7 +2,10 @@ mod inner_iterable;
 mod longest_path;
 
 pub use inner_iterable::InnerIterable;
-pub use longest_path::{find_longest_pattern, LongestPattern};
+pub use longest_path::{
+    find_longest_pattern, CloneableOption, LongestPattern, LongestPatternResult,
+    NodeWithOptionalIdx,
+};
 use regex::Regex;
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Eq, Ord)]

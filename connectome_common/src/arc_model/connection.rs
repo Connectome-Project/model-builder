@@ -1,12 +1,21 @@
-use super::node::Node;
-use crate::pattern::PatternTrait;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 #[allow(dead_code)]
-pub struct ConnectionToNode<'a, T, R>
+#[derive(Debug, Clone)]
+pub struct Connection<R = ConnectionInfo>
 where
-    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default,
+    R: Clone + PartialEq + Eq + Ord + PartialOrd + Display + Debug + Default,
 {
-    pub node: &'a Node<T>,
-    pub connection_info: Option<R>,
+    pub connection_info: Option<Vec<R>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct ConnectionInfo {
+    label: String,
+}
+
+impl Display for ConnectionInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.label)
+    }
 }

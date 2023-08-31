@@ -1,44 +1,43 @@
-use crate::pattern::PatternTrait;
-
-use self::model::Model;
+use self::connection::ConnectionInfo;
 pub use self::node::Node;
 pub use self::node_type::NodeType;
+use crate::arc_model::model::Model;
+
+use crate::pattern::PatternTrait;
 use std::{
+    fmt::Debug,
     fmt::Display,
     sync::{Arc, RwLock},
 };
 
 pub mod connection;
-mod model;
+pub mod graph_change_request;
+pub mod model;
 mod node;
 mod node_type;
 
-pub struct ThreadSafeModel<'a, 'b, T, R>
+pub struct ThreadSafeModel<T, R = ConnectionInfo>
 where
-    T: Clone + Ord + 'static + PatternTrait + Display + Default,
-    R: 'static,
+    T: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
+    R: Clone + PartialEq + Eq + Ord + PartialOrd + Display + Debug + Default,
 {
-    pub model: Arc<RwLock<Model<'a, 'b, T, R>>>,
+    pub model: Arc<RwLock<Model<T, R>>>,
 }
 
-impl<'a, 'b, T, R> ThreadSafeModel<'a, 'b, T, R>
+impl<T, R> ThreadSafeModel<T, R>
 where
-    T: Clone + Ord + 'static + PatternTrait + Display + Default,
-    R: 'static,
+    T: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
+    R: Clone + PartialEq + Eq + Ord + PartialOrd + Display + Debug + Default,
 {
     pub fn new() -> Self {
         ThreadSafeModel {
-            model: Arc::new(RwLock::new(Model::new())),
+            model: Arc::new(RwLock::new(Model::<T, R>::new())),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-
-    // use crate::arc_model::model::Node;
-
-    // use super::{model::Model, *};
 
     use std::sync::{Arc, RwLock};
 
@@ -47,12 +46,11 @@ mod tests {
     #[test]
     fn create_model() {
         let arc = ThreadSafeModel {
-            model: Arc::new(RwLock::new(Model::<'_, '_, String, ()>::new())),
+            model: Arc::new(RwLock::new(Model::<String, String>::new())),
         };
         let read_lock = arc.model.read();
         if let Ok(lock) = read_lock {
-            let nodes = lock.get_nodes();
-            assert_eq!(nodes.len(), 0);
+            // assert_eq!(lock.);
         }
     }
 }

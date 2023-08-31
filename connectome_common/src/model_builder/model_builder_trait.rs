@@ -1,8 +1,16 @@
-use std::{collections::BTreeMap, error::Error, fmt::Display, vec::IntoIter};
+use std::{
+    error::Error,
+    fmt::{Debug, Display},
+    vec::IntoIter,
+};
 
 use crate::{
-    arc_model::{connection::ConnectionToNode, Node, ThreadSafeModel},
-    pattern::{find_longest_pattern, InnerIterable, PatternTrait},
+    arc_model::Node,
+    arc_model::{graph_change_request::GraphChangeRequest, ThreadSafeModel},
+    pattern::{
+        find_longest_pattern, CloneableOption, InnerIterable, LongestPatternResult,
+        NodeWithOptionalIdx, PatternTrait,
+    },
 };
 
 use super::model_builder_base::ModelBuilder;
@@ -12,85 +20,110 @@ pub trait ModelBuilderTrait {
     fn is_applicable(&self) -> bool;
 }
 
-impl<'a, 'b, SomeInnerIterable, Additional, Dat, E, PatternContent> ModelBuilderTrait
-    for ModelBuilder<
-        ThreadSafeModel<'a, 'b, PatternContent, Additional>,
-        Dat,
-        SomeInnerIterable,
-        E,
-        PatternContent,
-    >
+impl<'a, 'b, SomeInnerIterable, Dat, E, PatternContent, Ix> ModelBuilderTrait
+    for ModelBuilder<ThreadSafeModel<PatternContent>, Dat, SomeInnerIterable, E, PatternContent, Ix>
 where
     E: Error,
-    PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default,
-    Additional: 'a + 'static,
+    PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     SomeInnerIterable: InnerIterable<PatternContent, IntoIter<PatternContent>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
+    Ix: Clone,
 {
     fn is_applicable(&self) -> bool {
         true
     }
     fn perform_action(&mut self) {
         let mut nodes_to_add: Vec<Node<PatternContent>> = Vec::new();
-        let mut connections_to_add: BTreeMap<
-            &'b Node<PatternContent>,
-            Vec<ConnectionToNode<'a, PatternContent, ()>>,
-        >;
-        let read = self.model.model.read().unwrap();
-        let nodes = read.get_nodes();
+        let Ok(read) = self.model.model.read() else{
+            panic!("Could not read model");
+        };
+        let data = read.get_data();
+
+        // let first_index = data.node_indices().next().unwrap();
+        // let start_node = data
+        //     .node_weight(first_index)
+        //     .iter()
+        //     .filter(|w| w.node_type == NodeType::Start)
+        //     .next()
+        //     .unwrap();
 
         for chunk_res in &mut self.data {
+            //merge to be added and existing nodes
+            let nodes_to_add_clone = nodes_to_add.clone();
+            let nodes_to_add_ref = nodes_to_add_clone
+                .iter()
+                .map(|e| NodeWithOptionalIdx {
+                    node: &e,
+                    index: CloneableOption::new_none(),
+                })
+                .collect::<Vec<NodeWithOptionalIdx<'_, PatternContent, usize>>>();
+            let mut node_weights = data
+                .node_indices()
+                .into_iter()
+                .map(|e| NodeWithOptionalIdx {
+                    node: data.node_weight(e).unwrap(),
+                    index: CloneableOption::new_some(e),
+                })
+                .chain(nodes_to_add_ref)
+                .collect::<Vec<NodeWithOptionalIdx<'_, PatternContent, usize>>>();
+
             if let Ok(chunk) = chunk_res {
-                let combined_nodes = combine_nodes(nodes, &nodes_to_add);
                 let chunk_internal_iterator = chunk.get_inner_iterable();
-                // let total_chunk = chunk.get_inner_iterable().reduce(|acc, e| acc.concat(&e));
-                // let chunk.
 
-                let mut previous_node: Option<Node<PatternContent>> = None;
-                find_longest_pattern(
-                    combined_nodes,
-                    None,
-                    chunk_internal_iterator.peekable(),
-                    PatternContent::default(),
-                );
+                // let mut previous_node: Option<Node<PatternContent>> = None;
+                // let last_node_found: Option<&Node<PatternContent>> = None;
+                let mut iter_to_go_through = chunk_internal_iterator.peekable();
 
-                // pattern_related_nodes
-                // while chunk_internal_iterator.next()
-                // for elem in chunk_internal_iterator {
-                //     if previous_node == None {
-                //         //find in model
-                //         let mut found_nodes = (collect)
-                //             .iter()
-                //             .filter(|node: &&arc_model::Node<PatternContent>| {
-                //                 let reg = regex::Regex::new(&format!("r{}", elem)).unwrap();
-                //                 return node.pattern.match_against(reg);
-                //             })
-                //             .collect::<Vec<&Node<PatternContent>>>()
-                //             .sort_by(|a, b| b.cmp(a));
+                loop {
+                    let res = find_longest_pattern(
+                        node_weights.clone(),
+                        None,
+                        iter_to_go_through,
+                        PatternContent::default(),
+                    );
 
-                //         //find it in new additions
-                //         if let None = found_node {
-                //             let possible_node = nodes_to_add
-                //                 .iter_mut()
-                //                 .find(|node: &&mut arc_model::Node<PatternContent>| {
-                //                     node.pattern.cmp(&elem) == Ordering::Equal
-                //                 })
-                //                 .cloned();
-                //             found_node = possible_node;
-                //         }
+                    match res {
+                        LongestPatternResult::ResultWithIter(result) => {
+                            let node = result.matching_node;
+                            iter_to_go_through = result.remaining_iter;
+                        }
+                        LongestPatternResult::Iter(mut it) => {
+                            if it.len() > 0 {
+                                let pattern = it.next().unwrap();
+                                let node_added = Node {
+                                    pattern,
+                                    node_type: crate::arc_model::NodeType::Generated,
+                                };
+                                let added_graph = GraphChangeRequest::AddNode(node_added);
+                                self.channel.send(added_graph);
+                                // let connection_added = Connection {
+                                //     connection_info: Some(vec![ConnectionInfo { label: chunk }]),
+                                // };
+                                // nodes_to_add.push(Chan {
+                                //     new_node: node_added,
+                                //     connection_from_node_index: ,
+                                //     connection: connection_added,
+                                // });
 
-                //         if let None = found_node {
-                //             nodes_to_add.push(Node {
-                //                 pattern: elem.clone(),
-                //                 node_type: NodeType::Generated,
-                //             })
-                //         }
+                                // match last_node_found {
+                                //     Some(last_node) => {
+                                //         let connections: Vec<
+                                //             ConnectionToNode<'_, PatternContent, ()>,
+                                //         > = vec![ConnectionToNode {
+                                //             node: &node_added2,
+                                //             connection_info: Some(()),
+                                //         }];
+                                //         connections_to_add.insert(&last_node, connections);
+                                //     }
+                                //     None => {}
+                                // };
 
-                //         if let Some(n) = found_node {
-                //             // if !read.connections_from.contains_key(n) {}
-                //         }
-                //     }
-                // }
+                                // last_node_found = Some(node_added);
+                            }
+                            break;
+                        } // LongestPatternResult::None => {}
+                    };
+                }
             }
         }
     }
@@ -101,7 +134,7 @@ fn combine_nodes<'a, PatternContent>(
     nodes_to_add: &'a Vec<Node<PatternContent>>,
 ) -> Vec<&'a Node<PatternContent>>
 where
-    PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default,
+    PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
 {
     nodes
         .iter()
@@ -111,22 +144,48 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::File,
+        io::{BufReader, Lines},
+        path::PathBuf,
+        sync::mpsc::channel,
+    };
 
-    // use super::find_longest_pattern;
-    // use crate::{arc_model::Node, arc_model::NodeType, pattern::LongestPattern};
+    use petgraph::stable_graph::NodeIndex;
 
-    // #[test]
-    // fn test_model_builder_creation() {
-    //     let input = vec!["This ist the first line.", "This is the second line."];
-    //     let type_of: ModelBuilderType = ModelBuilderType::Builder;
-    //     let config: TrainingConfig = TrainingConfig {};
-    //     let model = ThreadSafeModel::<'_, '_, String, ()>::new();
-    //     let combined_path: PathBuf = assemble_relative_path("src/example.txt");
-    //     let mut lines: Lines<BufReader<File>> = read_lines(combined_path).unwrap();
+    use crate::{
+        arc_model::{graph_change_request::GraphChangeRequest, Node, ThreadSafeModel},
+        model_builder::{
+            model_builder_base::ModelBuilder, model_builder_type::ModelBuilderType, TrainingConfig,
+        },
+        read_file::{assemble_relative_path, read_lines},
+    };
 
-    //     let mut builder = ModelBuilder::new(type_of, config, model, lines);
-    //     if (builder.is_applicable()) {
-    //         builder.perform_action();
-    //     }
-    // }
+    use super::ModelBuilderTrait;
+
+    #[test]
+    fn test_model_builder_creation() {
+        let input = vec!["This ist the first line.", "This is the second line."];
+        let type_of: ModelBuilderType = ModelBuilderType::Builder;
+        let config: TrainingConfig = TrainingConfig {};
+        let model = ThreadSafeModel::<String>::new();
+
+        {
+            let mut writeable_model = model.model.write().unwrap();
+            writeable_model.data.add_node(Node {
+                pattern: "".to_string(),
+                node_type: crate::arc_model::NodeType::Start,
+            });
+        }
+
+        let (tx, rx) = channel::<GraphChangeRequest<String, usize>>();
+
+        let combined_path: PathBuf = assemble_relative_path("src/example.txt");
+        let mut lines: Lines<BufReader<File>> = read_lines(combined_path).unwrap();
+
+        let mut builder = ModelBuilder::new(type_of, config, model, lines, tx);
+        if builder.is_applicable() {
+            builder.perform_action();
+        }
+    }
 }

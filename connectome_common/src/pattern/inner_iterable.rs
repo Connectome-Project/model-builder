@@ -1,6 +1,8 @@
 use std::vec::IntoIter;
 
-pub trait InnerIterable<It: Clone + Ord + 'static, Iter: Iterator<Item = It>> {
+pub trait InnerIterable<It: Clone + Ord + 'static, Iter: Iterator<Item = It>>:
+    FromIterator<It>
+{
     fn get_inner_iterable(&self) -> Iter;
 }
 

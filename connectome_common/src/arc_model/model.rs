@@ -1,33 +1,33 @@
-use super::connection::ConnectionToNode;
+use super::connection::Connection;
 use super::node::Node;
 use crate::pattern::PatternTrait;
-use std::collections::BTreeMap;
-use std::fmt::Display;
+use petgraph::stable_graph::StableGraph;
+use petgraph::Directed;
+use std::fmt::{Debug, Display};
 
-pub struct Model<'a, 'b, T, R>
+pub struct Model<T, R>
 where
-    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default,
-    R: 'static,
+    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default + Debug,
+    R: Clone + PartialEq + Eq + Ord + PartialOrd + Display + Debug + Default,
 {
-    pub nodes: Vec<Node<T>>,
-    #[allow(dead_code)]
-    pub connections_from: BTreeMap<&'b Node<T>, Vec<ConnectionToNode<'a, T, R>>>,
+    pub data: StableGraph<Node<T>, Connection<R>, Directed, usize>,
 }
 
-impl<'a, 'b, T, R> Model<'a, 'b, T, R>
+impl<T, R> Model<T, R>
 where
-    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default,
-    R: 'static,
+    T: Clone + PartialEq + 'static + Ord + PatternTrait + Display + Default + Debug,
+    R: Clone + PartialEq + Eq + Ord + PartialOrd + Display + Debug + Default,
 {
     #[allow(dead_code)]
     pub fn new() -> Self {
         Model {
-            nodes: Vec::new(),
-            connections_from: BTreeMap::new(),
+            data: StableGraph::<Node<T>, Connection<R>, Directed, usize>::default(),
         }
     }
-
-    pub fn get_nodes(&self) -> &Vec<Node<T>> {
-        &self.nodes
+    pub fn get_data(&self) -> &StableGraph<Node<T>, Connection<R>, Directed, usize> {
+        &self.data
+    }
+    pub fn get_data_mut(&mut self) -> &mut StableGraph<Node<T>, Connection<R>, Directed, usize> {
+        &mut self.data
     }
 }

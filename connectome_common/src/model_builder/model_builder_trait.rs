@@ -1,12 +1,19 @@
 use std::{
     error::Error,
     fmt::{Debug, Display},
+    hash::Hash,
     vec::IntoIter,
 };
 
+use petgraph::stable_graph::IndexType;
+
 use crate::{
     arc_model::Node,
-    arc_model::{graph_change_request::GraphChangeRequest, ThreadSafeModel},
+    arc_model::{
+        connection::{Connection, ConnectionInfo},
+        graph_change_request::{GraphChangeRequest, NodeOrIdx},
+        ThreadSafeModel,
+    },
     pattern::{
         find_longest_pattern, CloneableOption, InnerIterable, LongestPatternResult,
         NodeWithOptionalIdx, PatternTrait,
@@ -21,13 +28,20 @@ pub trait ModelBuilderTrait {
 }
 
 impl<'a, 'b, SomeInnerIterable, Dat, E, PatternContent, Ix> ModelBuilderTrait
-    for ModelBuilder<ThreadSafeModel<PatternContent>, Dat, SomeInnerIterable, E, PatternContent, Ix>
+    for ModelBuilder<
+        ThreadSafeModel<PatternContent, PatternContent, Ix>,
+        Dat,
+        SomeInnerIterable,
+        E,
+        PatternContent,
+        Ix,
+    >
 where
     E: Error,
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     SomeInnerIterable: InnerIterable<PatternContent, IntoIter<PatternContent>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
-    Ix: Clone,
+    Ix: Clone + Debug + PartialOrd + Eq + Hash + IndexType + Ord + Default,
 {
     fn is_applicable(&self) -> bool {
         true
@@ -39,14 +53,6 @@ where
         };
         let data = read.get_data();
 
-        // let first_index = data.node_indices().next().unwrap();
-        // let start_node = data
-        //     .node_weight(first_index)
-        //     .iter()
-        //     .filter(|w| w.node_type == NodeType::Start)
-        //     .next()
-        //     .unwrap();
-
         for chunk_res in &mut self.data {
             //merge to be added and existing nodes
             let nodes_to_add_clone = nodes_to_add.clone();
@@ -56,7 +62,8 @@ where
                     node: &e,
                     index: CloneableOption::new_none(),
                 })
-                .collect::<Vec<NodeWithOptionalIdx<'_, PatternContent, usize>>>();
+                .collect::<Vec<NodeWithOptionalIdx<'_, PatternContent, Ix>>>();
+
             let mut node_weights = data
                 .node_indices()
                 .into_iter()
@@ -65,15 +72,14 @@ where
                     index: CloneableOption::new_some(e),
                 })
                 .chain(nodes_to_add_ref)
-                .collect::<Vec<NodeWithOptionalIdx<'_, PatternContent, usize>>>();
+                .collect::<Vec<NodeWithOptionalIdx<'_, PatternContent, Ix>>>();
 
             if let Ok(chunk) = chunk_res {
                 let chunk_internal_iterator = chunk.get_inner_iterable();
-
-                // let mut previous_node: Option<Node<PatternContent>> = None;
-                // let last_node_found: Option<&Node<PatternContent>> = None;
                 let mut iter_to_go_through = chunk_internal_iterator.peekable();
 
+                let mut last_node_found: Option<NodeWithOptionalIdx<PatternContent, Ix>> = None;
+                let mut last_node_content: Node<PatternContent>;
                 loop {
                     let res = find_longest_pattern(
                         node_weights.clone(),
@@ -84,8 +90,24 @@ where
 
                     match res {
                         LongestPatternResult::ResultWithIter(result) => {
-                            let node = result.matching_node;
+                            let matched_node: NodeWithOptionalIdx<'_, PatternContent, Ix> =
+                                result.matching_node;
+                            let pattern_to_connection = result.pattern_so_far;
+
+                            if let Some(last_found_node_or_idx) = last_node_found.clone() {
+                                let added_connection = GraphChangeRequest::AddConnection {
+                                    from_node: NodeOrIdx::from(last_found_node_or_idx),
+                                    to_node: NodeOrIdx::from(matched_node.clone()),
+                                    connection: Connection::build_from_content(ConnectionInfo {
+                                        label: pattern_to_connection.clone(),
+                                    }),
+                                };
+                                let _ = self.channel.send(added_connection);
+                            }
+
+                            //set values for continuation
                             iter_to_go_through = result.remaining_iter;
+                            last_node_found = Some(matched_node);
                         }
                         LongestPatternResult::Iter(mut it) => {
                             if it.len() > 0 {
@@ -94,34 +116,38 @@ where
                                     pattern,
                                     node_type: crate::arc_model::NodeType::Generated,
                                 };
+                                let node_added_cloned = node_added.clone();
+
                                 let added_graph = GraphChangeRequest::AddNode(node_added);
-                                self.channel.send(added_graph);
-                                // let connection_added = Connection {
-                                //     connection_info: Some(vec![ConnectionInfo { label: chunk }]),
-                                // };
-                                // nodes_to_add.push(Chan {
-                                //     new_node: node_added,
-                                //     connection_from_node_index: ,
-                                //     connection: connection_added,
-                                // });
+                                let _ = self.channel.send(added_graph); //No error handling
 
-                                // match last_node_found {
-                                //     Some(last_node) => {
-                                //         let connections: Vec<
-                                //             ConnectionToNode<'_, PatternContent, ()>,
-                                //         > = vec![ConnectionToNode {
-                                //             node: &node_added2,
-                                //             connection_info: Some(()),
-                                //         }];
-                                //         connections_to_add.insert(&last_node, connections);
-                                //     }
-                                //     None => {}
-                                // };
+                                if let Some(node_with_opt_idx) = last_node_found {
+                                    let node_or_idx = NodeOrIdx::from(node_with_opt_idx);
+                                    let added_connection = GraphChangeRequest::AddConnection {
+                                        from_node: node_or_idx,
+                                        to_node: NodeOrIdx::Pattern(
+                                            node_added_cloned.pattern.clone(),
+                                        ),
+                                        connection: Connection::build_from_content(
+                                            ConnectionInfo {
+                                                label: node_added_cloned.pattern.clone(),
+                                            },
+                                        ),
+                                    };
+                                    let _ = self.channel.send(added_connection);
+                                }
 
-                                // last_node_found = Some(node_added);
+                                //set values for continuation
+                                iter_to_go_through = it;
+                                last_node_content = node_added_cloned;
+                                last_node_found = Some(NodeWithOptionalIdx {
+                                    index: CloneableOption::new_none(),
+                                    node: &last_node_content,
+                                });
+                            } else {
+                                break;
                             }
-                            break;
-                        } // LongestPatternResult::None => {}
+                        }
                     };
                 }
             }
@@ -151,8 +177,6 @@ mod tests {
         sync::mpsc::channel,
     };
 
-    use petgraph::stable_graph::NodeIndex;
-
     use crate::{
         arc_model::{graph_change_request::GraphChangeRequest, Node, ThreadSafeModel},
         model_builder::{
@@ -168,7 +192,7 @@ mod tests {
         let input = vec!["This ist the first line.", "This is the second line."];
         let type_of: ModelBuilderType = ModelBuilderType::Builder;
         let config: TrainingConfig = TrainingConfig {};
-        let model = ThreadSafeModel::<String>::new();
+        let model = ThreadSafeModel::<String, String, usize>::new();
 
         {
             let mut writeable_model = model.model.write().unwrap();

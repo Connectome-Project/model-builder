@@ -19,7 +19,7 @@ where
     Pattern: Clone + Ord + 'static + Default + PatternTrait + Display + Debug,
     SomeInnerIterable: InnerIterable<Pattern, IntoIter<Pattern>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
-    Ix: Clone,
+    Ix: Clone + Debug,
 {
     pub type_of: ModelBuilderType,
     pub config: TrainingConfig,
@@ -36,7 +36,7 @@ where
     Pattern: Clone + Ord + 'static + Default + PatternTrait + Display + Debug,
     SomeInnerIterable: InnerIterable<Pattern, IntoIter<Pattern>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
-    Ix: Clone,
+    Ix: Clone + Debug,
 {
     pub fn new(
         type_of: ModelBuilderType,
@@ -68,7 +68,7 @@ mod tests {
         let input = vec!["This ist the first line.", "This is the second line."];
         let type_of: ModelBuilderType = ModelBuilderType::Builder;
         let config: TrainingConfig = TrainingConfig {};
-        let model = ThreadSafeModel::<String, String>::new();
+        let model = ThreadSafeModel::<String, String, usize>::new();
 
         assert!(!model.model.is_poisoned())
     }

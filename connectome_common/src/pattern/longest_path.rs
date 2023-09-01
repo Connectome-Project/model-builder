@@ -68,7 +68,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CloneableOption<T: Clone>(Option<T>);
+pub struct CloneableOption<T: Clone>(pub Option<T>);
 
 impl<T: Clone> CloneableOption<T> {
     pub fn new_some(t: T) -> Self {
@@ -153,13 +153,13 @@ where
     }
     // previous found is the longest
     if matched_node.is_some() && pattern_so_far != PatternContent::default() {
-        return LongestPatternResult::ResultWithIter(LongestPattern {
+        return LongestPatternResult::ResultWithIter(LongestPattern::<'_, PatternContent, Ix> {
             matching_node: matched_node.unwrap(),
             pattern_so_far: pattern_so_far.clone(),
             remaining_iter: data_iterator,
         });
     }
-    //empty pattern, empty nodes
+    //empty pattern or empty nodes
     return LongestPatternResult::Iter(data_iterator);
 }
 

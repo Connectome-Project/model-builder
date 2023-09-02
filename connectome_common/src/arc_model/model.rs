@@ -1,7 +1,8 @@
 use super::connection::Connection;
 use super::node::Node;
 use crate::pattern::PatternTrait;
-use petgraph::stable_graph::{IndexType, StableGraph};
+use petgraph::stable_graph::IndexType;
+use petgraph::stable_graph::StableGraph;
 use petgraph::Directed;
 use std::fmt::{Debug, Display};
 
@@ -18,7 +19,7 @@ where
         + Default
         + PatternTrait
         + 'static,
-    Ix: Clone + Debug,
+    Ix: Copy + IndexType,
 {
     pub data: StableGraph<Node<T>, Connection<R>, Directed, Ix>,
 }
@@ -36,7 +37,7 @@ where
         + Default
         + PatternTrait
         + 'static,
-    Ix: Clone + Debug + PartialOrd + Eq + IndexType + Ord + Default,
+    Ix: Copy + IndexType,
 {
     #[allow(dead_code)]
     pub fn new() -> Self {

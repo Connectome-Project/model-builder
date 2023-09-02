@@ -41,7 +41,7 @@ where
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     SomeInnerIterable: InnerIterable<PatternContent, IntoIter<PatternContent>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
-    Ix: Clone + Debug + PartialOrd + Eq + Hash + IndexType + Ord + Default,
+    Ix: Clone + IndexType,
 {
     fn is_applicable(&self) -> bool {
         true
@@ -193,14 +193,6 @@ mod tests {
         let type_of: ModelBuilderType = ModelBuilderType::Builder;
         let config: TrainingConfig = TrainingConfig {};
         let model = ThreadSafeModel::<String, String, usize>::new();
-
-        {
-            let mut writeable_model = model.model.write().unwrap();
-            writeable_model.data.add_node(Node {
-                pattern: "".to_string(),
-                node_type: crate::arc_model::NodeType::Start,
-            });
-        }
 
         let (tx, rx) = channel::<GraphChangeRequest<String, usize>>();
 

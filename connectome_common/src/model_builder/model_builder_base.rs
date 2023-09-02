@@ -6,6 +6,8 @@ use std::{
     vec::IntoIter,
 };
 
+use petgraph::stable_graph::IndexType;
+
 use crate::{
     arc_model::graph_change_request::GraphChangeRequest,
     pattern::{InnerIterable, PatternTrait},
@@ -19,7 +21,7 @@ where
     Pattern: Clone + Ord + 'static + Default + PatternTrait + Display + Debug,
     SomeInnerIterable: InnerIterable<Pattern, IntoIter<Pattern>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     pub type_of: ModelBuilderType,
     pub config: TrainingConfig,
@@ -36,7 +38,7 @@ where
     Pattern: Clone + Ord + 'static + Default + PatternTrait + Display + Debug,
     SomeInnerIterable: InnerIterable<Pattern, IntoIter<Pattern>>,
     Dat: Iterator<Item = Result<SomeInnerIterable, E>>,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     pub fn new(
         type_of: ModelBuilderType,

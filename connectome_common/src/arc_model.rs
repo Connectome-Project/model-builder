@@ -14,6 +14,7 @@ use std::{
 pub mod connection;
 pub mod graph_change_request;
 pub mod model;
+mod model_trait;
 mod node;
 mod node_type;
 
@@ -30,7 +31,7 @@ where
         + Default
         + PatternTrait
         + 'static,
-    Ix: Clone + Debug + PartialOrd + Eq + IndexType + Ord + Default,
+    Ix: IndexType + Clone,
 {
     pub model: Arc<RwLock<Model<T, R, Ix>>>,
 }
@@ -48,7 +49,7 @@ where
         + Default
         + PatternTrait
         + 'static,
-    Ix: Clone + Debug + PartialOrd + Eq + IndexType + Ord + Default,
+    Ix: IndexType + Clone,
 {
     pub fn new() -> Self {
         ThreadSafeModel {

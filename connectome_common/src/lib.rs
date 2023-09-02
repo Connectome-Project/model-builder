@@ -1,4 +1,5 @@
 mod arc_model;
+mod graph_builder;
 mod model_builder;
 mod pattern;
 mod read_file;

@@ -5,7 +5,7 @@ use std::{
     vec::IntoIter,
 };
 
-use petgraph::stable_graph::NodeIndex;
+use petgraph::stable_graph::{IndexType, NodeIndex};
 use regex::Regex;
 
 use crate::arc_model::Node;
@@ -16,7 +16,7 @@ pub enum LongestPatternResult<'a, P, Ix>
 where
     P: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     Self: Display,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     ResultWithIter(LongestPattern<'a, P, Ix>),
     Iter(Peekable<IntoIter<P>>),
@@ -26,7 +26,7 @@ impl<'a, P, Ix> LongestPatternResult<'a, P, Ix>
 where
     P: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     Self: Display,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     pub fn is_some(&self) -> bool {
         if let LongestPatternResult::ResultWithIter(d) = self {
@@ -46,7 +46,7 @@ where
 impl<'a, Pattern, Ix> std::fmt::Display for LongestPatternResult<'a, Pattern, Ix>
 where
     Pattern: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match &self {
@@ -60,7 +60,7 @@ where
 pub struct LongestPattern<'a, Pattern, Ix>
 where
     Pattern: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     pub matching_node: NodeWithOptionalIdx<'a, Pattern, Ix>,
     pub pattern_so_far: Pattern,
@@ -80,7 +80,7 @@ impl<T: Clone> CloneableOption<T> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NodeWithOptionalIdx<'a, PatternContent, Ix: Clone + Debug>
+pub struct NodeWithOptionalIdx<'a, PatternContent, Ix: Clone + IndexType>
 where
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
 {
@@ -96,7 +96,7 @@ pub fn find_longest_pattern<'a, PatternContent, Ix>(
 ) -> LongestPatternResult<'a, PatternContent, Ix>
 where
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
-    Ix: Clone + Debug,
+    Ix: Clone + IndexType,
 {
     if let Some(_) = data_iterator.peek() {
         let extended_pattern_so_far = pattern_so_far.concat(&data_iterator.next().unwrap());
@@ -169,7 +169,7 @@ fn filter_nodes<'a, PatternContent, Idx>(
 ) -> Vec<NodeWithOptionalIdx<'a, PatternContent, Idx>>
 where
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
-    Idx: Clone + Debug,
+    Idx: Clone + IndexType,
 {
     nodes_with_indices
         .into_iter()

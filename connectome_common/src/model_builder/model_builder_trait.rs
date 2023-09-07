@@ -48,7 +48,7 @@ where
     }
     fn perform_action(&mut self) {
         let mut nodes_to_add: Vec<Node<PatternContent>> = Vec::new();
-        let Ok(read) = self.model.model.read() else{
+        let Ok(read) = self.model.data.read() else{
             panic!("Could not read model");
         };
         let data = read.get_data();

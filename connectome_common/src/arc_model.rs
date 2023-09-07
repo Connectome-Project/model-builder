@@ -33,7 +33,7 @@ where
         + 'static,
     Ix: IndexType + Clone,
 {
-    pub model: Arc<RwLock<Model<T, R, Ix>>>,
+    pub data: Arc<RwLock<Model<T, R, Ix>>>,
 }
 
 impl<T, R, Ix> ThreadSafeModel<T, R, Ix>
@@ -53,7 +53,29 @@ where
 {
     pub fn new() -> Self {
         ThreadSafeModel {
-            model: Arc::new(RwLock::new(Model::<T, R, Ix>::new())),
+            data: Arc::new(RwLock::new(Model::<T, R, Ix>::new())),
+        }
+    }
+}
+
+impl<T, R, Ix> Clone for ThreadSafeModel<T, R, Ix>
+where
+    T: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
+    R: Clone
+        + PartialEq
+        + Eq
+        + Ord
+        + PartialOrd
+        + Display
+        + Debug
+        + Default
+        + PatternTrait
+        + 'static,
+    Ix: IndexType + Clone,
+{
+    fn clone(&self) -> Self {
+        ThreadSafeModel {
+            data: self.data.clone(),
         }
     }
 }
@@ -68,9 +90,9 @@ mod tests {
     #[test]
     fn create_model() {
         let arc = ThreadSafeModel {
-            model: Arc::new(RwLock::new(Model::<String, String, usize>::new())),
+            data: Arc::new(RwLock::new(Model::<String, String, usize>::new())),
         };
-        let read_lock = arc.model.read();
+        let read_lock = arc.data.read();
         if let Ok(lock) = read_lock {
             // assert_eq!(lock.);
         }

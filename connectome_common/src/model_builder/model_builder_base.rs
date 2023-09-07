@@ -72,6 +72,6 @@ mod tests {
         let config: TrainingConfig = TrainingConfig {};
         let model = ThreadSafeModel::<String, String, usize>::new();
 
-        assert!(!model.model.is_poisoned())
+        assert!(!model.data.is_poisoned())
     }
 }

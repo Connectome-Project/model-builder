@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 use crate::pattern::PatternTrait;
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Connection<R>
 where
     R: Clone
@@ -35,7 +35,7 @@ where
 {
     pub fn build_from_content(info: ConnectionInfo<R>) -> Self {
         Connection {
-            connection_info: Some(vec![]),
+            connection_info: Some(vec![info]),
         }
     }
 

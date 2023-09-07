@@ -97,12 +97,14 @@ mod tests {
         > = model.data.read().unwrap();
         let inner_model = read.get_data();
 
-        let first = inner_model.node_weight(NodeIndex::new(0)).unwrap();
-        let second = inner_model.node_weight(NodeIndex::new(1)).unwrap();
+        let node1_idx = NodeIndex::new(0);
+        let node2_idx = NodeIndex::new(1);
+        let first = inner_model.node_weight(node1_idx).unwrap();
+        let second = inner_model.node_weight(node2_idx).unwrap();
         let res_connection = inner_model.edge_weight(EdgeIndex::new(0)).unwrap();
-
         assert_eq!(first.pattern, node1_clone.pattern);
         assert_eq!(second.pattern, node2_clone.pattern);
-        assert_eq!(connection_clone, res_connection.clone())
+        assert_eq!(connection_clone, res_connection.clone());
+        assert!(inner_model.contains_edge(node1_idx.clone(), node2_idx.clone()));
     }
 }

@@ -1,0 +1,11 @@
+[package]
+name = "connectome_graph"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.73"
+tokio = { version = "1", features = ["full"] }
+gremlin-client = { version = "0.8", features = ["tokio-runtime"] }

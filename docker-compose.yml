@@ -1,0 +1,31 @@
+services:
+  janusgraph:
+    image: janusgraph/janusgraph:latest
+    ports:
+      - "8182:8182"
+    networks:
+      - front-tier
+  cassandra:
+    image: cassandra:4.1.3
+    ports:
+      - "7000:7000"
+    volumes:
+      - "/db/cassandra:/var/lib/cassandra"
+    networks:
+      - front-tier
+  ivana-studio:
+    image: invanalabs/invana-studio
+    ports:
+      - "8300:8300"
+    networks:
+      - front-tier
+  ivana-engine:
+    image: invanalabs/invana-engine
+    ports:
+      - "8200:8200"
+    environment:
+      - GREMLIN_SERVER_URL=ws://janusgraph:8182/gremlin
+    networks:
+      - front-tier
+networks:
+  front-tier:

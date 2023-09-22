@@ -13,3 +13,11 @@ Steps to start rust code from python
 5. pip install -r requirements.txt
 6. maturin develop
 7. launch using debug of vs code (f5) or by python -m python/main.py
+
+## Starting the graph application and database:
+
+1. docker compose up
+2. In the browser open: [http://localhost:8300/explorer](http://localhost:8300/explorer)
+3. Connect to the default: http://localhost:8200/graphql
+4. Run queries against the db or observe its state.
+5. Start the connectome_graph application

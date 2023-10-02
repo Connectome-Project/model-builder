@@ -4,7 +4,7 @@ mod model_builder;
 mod pattern;
 
 use core::num;
-use graph_db_connection::GremlinConnectionType;
+use graph_db_connection::ConnectionType;
 use gremlin_client::{
     aio::GremlinClient, process::traversal::traversal, ConnectionOptions, Vertex,
 };
@@ -19,15 +19,10 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 
     let num_cores = num_cpus::get();
     println!("Number of logical cpu cores: {num_cores}");
-    let mut connection_options = ConnectionOptions::builder()
-        .host("localhost")
-        .port(8182)
-        .pool_size(num_cores as u32)
-        .build();
 
-    let mut gremlin_client = GremlinConnectionType::create(connection_options).await?;
+    let mut gremlin_client = ConnectionType::create("http://localhost:7687", "", "").await?;
     gremlin_client.clear_db().await?;
-    gremlin_client.create_node("hello".to_string()).await?;
+    gremlin_client.create_node("hello").await?;
     gremlin_client.create_node("te").await?;
 
     let mut handles = Vec::new();
@@ -36,7 +31,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         let mut client = gremlin_client.clone();
         let node_pattern = format!("{}", i);
         let handle = tokio::spawn(async move {
-            let new_node = client.create_node(node_pattern.clone()).await;
+            let new_node = client.create_node(&node_pattern).await;
             return 0;
         });
         handles.push(handle);

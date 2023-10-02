@@ -1,0 +1,65 @@
+g.V()  
+.map{ vertex -> 
+    def label = vertex.label()  
+    regexPattern = "\\b${label}\\b" 
+    [vertex, regexPattern] 
+} 
+.filter{ _, regexPattern -> 
+    input.matches(regexPattern) 
+} 
+.select{ vertex, _ -> 
+    vertex 
+}
+
+g.V().drop()
+
+g.addV('w').addV('wh').addV('y').addV('?').addV('w.').addV('h')
+
+g.V().hasLabel('w').as('w').V().hasLabel('h').as('h').addE('e').from('w').to('h').property('h', 'wh')
+g.V().hasLabel('wh').as('wh').V().hasLabel('y').as('y').addE('e').from('wh').to('y').property('h', 'why')
+g.V().hasLabel('w').as('w').V().hasLabel('h').as('h').addE('e').from('w').to('h').property('h', 'wh')
+g.V().hasLabel('w').as('w').V().hasLabel('h').as('h').addE('e').from('w').to('h').property('h', 'wh')
+g.V().hasLabel('w').as('w').V().hasLabel('h').as('h').addE('e').from('w').to('h').property('h', 'wh')
+
+import java.util.regex.Pattern;
+g.V().label().filter{ label -> Pattern.compile("w").matcher(label).matches() }.toList()
+
+g.addV('w.')
+.as('45128')
+.property(T.id, 45128)
+.addV('w')
+.as('53384')
+.property(T.id, 53384)
+.addV('wh')
+.as('106680')
+.property(T.id, 106680)
+.addV('y')
+.as('110776')
+.property(T.id, 110776)
+.addV('?')
+.as('41176')
+.property(T.id, 41176)
+.addV('h')
+.as('45272')
+.property(T.id, 45272)
+.addE('e').from('53384').to('45272')
+.property(T.id, "bgx-156w-2gid-yxk")
+.property('h', "wh")
+.addE('e').from('45272').to('110776')
+.property(T.id, "odxcr-yxk-2gid-2dh4")
+.property('h', "why")
+.addE('e').from('110776').to('41176')
+.property(T.id, "odxcn-2dh4-2gid-vrs")
+.property('h', "why?")
+.addE('e').from('45128').to('110776')
+.property(T.id, "odxc9-ytk-2gid-2dh4")
+.property('h', "why")
+.addE('e').from('106680').to('110776')
+.property(T.id, "odxqv-2abc-2gid-2dh4")
+.property('h', "why")
+
+
+g.V().filter(filter(constant('why').regex(g.V().label()))
+ 
+
+MATCH (v) WHERE 'Trin' =~ v.name RETURN v

@@ -1,5 +1,20 @@
 # Connectome-Project
 
+!!!!Under construction.
+
+This projects aims to realize a graph-based connectome with planned simplification steps.
+So far the builder is created with an in-memory storage. A re-implementation will be on way with a graph database to give it a simplified logic and also to store the data in a more robust way.
+
+## Crates:
+
+### Connectome common:
+
+This is the initial implementation of an in-memory implementation of the graph builder step.
+
+### Connectome graph:
+
+Start of the reimplementation of the builder step with an actual database implemenation.
+
 ## Python interoperability:
 
 Pulling
@@ -7,17 +22,13 @@ For python interoperability check out the user guide for [pyo3](https://pyo3.rs/
 
 Steps to start rust code from python
 
-2. cd connectome_common
-3. Create venv if doesn't exist: pyhton -m venv .venv
-4. source .env/bin/activate
-5. pip install -r requirements.txt
-6. maturin develop
-7. launch using debug of vs code (f5) or by python -m python/main.py
+1. cd connectome_python_binding
+2. Create venv if doesn't exist: pyhton -m venv .venv
+3. source .env/bin/activate
+4. pip install -r requirements.txt
+5. maturin develop
+6. launch using debug of vs code (f5) or by python -m python/main.py
 
 ## Starting the graph application and database:
 
 1. docker compose up
-2. In the browser open: [http://localhost:8300/explorer](http://localhost:8300/explorer)
-3. Connect to the default: http://localhost:8200/graphql
-4. Run queries against the db or observe its state.
-5. Start the connectome_graph application

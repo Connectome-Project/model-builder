@@ -45,7 +45,6 @@ fn test_graph_builder_step() {
         model_builder.perform_action();
     });
 
-    //must be done to
     model_builder_handle.join().unwrap();
     drop(sender);
 

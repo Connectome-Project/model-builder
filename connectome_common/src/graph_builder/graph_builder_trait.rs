@@ -42,8 +42,7 @@ where
                             let existing_edge = writer.data.find_edge(from, to);
                             if existing_edge.is_some() {
                                 let edge_idx = existing_edge.unwrap();
-                                let mut edge_to_modify =
-                                    writer.data.edge_weight_mut(edge_idx).unwrap();
+                                let edge_to_modify = writer.data.edge_weight_mut(edge_idx).unwrap();
                                 if edge_to_modify.connection_info.is_some() {
                                     let edge = edge_to_modify.connection_info.as_mut().unwrap();
                                     let content = connection.connection_info.unwrap();

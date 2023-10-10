@@ -4,8 +4,6 @@ use neo4rs::{query, Graph};
 use std::sync::Arc;
 use std::{error, vec};
 
-use crate::pattern;
-
 pub struct Node {
     pattern: String,
 }

@@ -3,14 +3,7 @@ name = "connectome_common"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-name = "connectome_common"
-crate-type = ["cdylib"]
-
 [dependencies]
 regex = "1.8.4"
-pyo3 = "0.19.0"
 layout-rs = "0.1.1"
 petgraph="0.6.4"

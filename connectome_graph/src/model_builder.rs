@@ -1,6 +1,4 @@
-use regex::Regex;
-
-use crate::{graph_db_connection::GraphDbConnection, pattern::Pattern, ConnectionType};
+use crate::{pattern::Pattern, ConnectionType};
 use std::{iter::Peekable, vec::IntoIter};
 
 pub async fn build_model<Pat: Pattern, D: From<Pat>>(

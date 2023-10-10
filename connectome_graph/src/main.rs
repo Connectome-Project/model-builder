@@ -3,11 +3,8 @@ mod input;
 mod model_builder;
 mod pattern;
 
-use core::num;
 use graph_db_connection::ConnectionType;
-use gremlin_client::{
-    aio::GremlinClient, process::traversal::traversal, ConnectionOptions, Vertex,
-};
+
 use num_cpus;
 use std::error;
 

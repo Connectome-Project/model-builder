@@ -28,15 +28,16 @@ where
     Self: Display,
     Ix: Clone + IndexType,
 {
+    #[allow(dead_code)]
     pub fn is_some(&self) -> bool {
-        if let LongestPatternResult::ResultWithIter(d) = self {
+        if let LongestPatternResult::ResultWithIter(_) = self {
             return true;
         }
         false
     }
-
+    #[allow(dead_code)]
     pub fn is_none(&self) -> bool {
-        if let LongestPatternResult::Iter(d) = self {
+        if let LongestPatternResult::Iter(_) = self {
             return true;
         }
         false
@@ -183,7 +184,7 @@ mod tests {
 
     use crate::{
         arc_model::{Node, NodeType},
-        pattern::{find_longest_pattern, LongestPattern, LongestPatternResult},
+        pattern::{find_longest_pattern, LongestPatternResult},
     };
 
     use super::{CloneableOption, NodeWithOptionalIdx};

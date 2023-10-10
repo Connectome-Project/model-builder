@@ -55,7 +55,7 @@ fn get_first_n_chars(input: &str, n: usize) -> &str {
     let mut char_indices = input.char_indices();
 
     for _ in 0..n {
-        if let Some((idx, _)) = char_indices.next() {
+        if let Some((_, _)) = char_indices.next() {
             // idx is the byte index of the character's start in the input string
         } else {
             // If there are fewer than n characters in the input string

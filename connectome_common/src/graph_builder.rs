@@ -5,7 +5,7 @@ pub use graph_builder_trait::GraphBuilderTrait;
 use petgraph::stable_graph::IndexType;
 use std::{fmt::Debug, fmt::Display, sync::mpsc::Receiver};
 
-struct GraphBuilder<PatternContent, Ix, Mod>
+pub struct GraphBuilder<PatternContent, Ix, Mod>
 where
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     Ix: Clone + IndexType,
@@ -19,14 +19,14 @@ where
     PatternContent: Clone + Ord + 'static + PatternTrait + Display + Default + Debug,
     Ix: Clone + IndexType,
 {
-    fn new(model: Mod) -> Self {
+    pub fn new(model: Mod) -> Self {
         GraphBuilder {
             channel: None,
             model,
         }
     }
 
-    fn set_channel(&mut self, chan: Option<Receiver<GraphChangeRequest<PatternContent, Ix>>>) {
+    pub fn set_channel(&mut self, chan: Option<Receiver<GraphChangeRequest<PatternContent, Ix>>>) {
         self.channel = chan;
     }
 }

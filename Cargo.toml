@@ -3,4 +3,5 @@
 members = [
     "connectome_common",
     "connectome_graph",
+    "connectome_python_binding"
 ]

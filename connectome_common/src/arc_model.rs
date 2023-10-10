@@ -94,7 +94,7 @@ mod tests {
         };
         let read_lock = arc.data.read();
         if let Ok(lock) = read_lock {
-            // assert_eq!(lock.);
+            assert_eq!(lock.get_data().edge_count(), 0);
         }
     }
 }

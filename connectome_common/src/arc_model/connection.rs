@@ -39,6 +39,7 @@ where
         }
     }
 
+    #[allow(dead_code)]
     fn add_content(&mut self, info: ConnectionInfo<R>) -> () {
         if let None = self.connection_info {
             self.connection_info = Some(vec![]);

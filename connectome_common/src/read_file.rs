@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
-#[allow(dead_code)]
 pub fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
     P: AsRef<Path>,
@@ -13,7 +12,6 @@ where
     Ok(reader.lines())
 }
 
-#[allow(dead_code)]
 pub fn assemble_relative_path(relative_path: &str) -> PathBuf {
     let path_buf = env::current_dir().unwrap();
     let current_directory = path_buf.as_path();

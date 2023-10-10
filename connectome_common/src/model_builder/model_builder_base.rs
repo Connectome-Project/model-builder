@@ -60,18 +60,30 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        fs::File,
+        io::{BufReader, Lines},
+        path::PathBuf,
+        sync::mpsc::channel,
+    };
+
     use crate::{
         arc_model::ThreadSafeModel,
+        assemble_relative_path,
         model_builder::{model_builder_type::ModelBuilderType, TrainingConfig},
+        read_lines, GraphChangeRequest, ModelBuilder, ModelBuilderTrait,
     };
 
     #[test]
     fn test_model_builder_creation() {
-        let input = vec!["This ist the first line.", "This is the second line."];
-        let type_of: ModelBuilderType = ModelBuilderType::Builder;
-        let config: TrainingConfig = TrainingConfig {};
+        let (sender, _) = channel::<GraphChangeRequest<String, usize>>();
         let model = ThreadSafeModel::<String, String, usize>::new();
 
-        assert!(!model.data.is_poisoned())
+        let combined_path: PathBuf = assemble_relative_path("src/example.txt");
+        let lines: Lines<BufReader<File>> = read_lines(combined_path).unwrap();
+        let config = TrainingConfig {};
+        let model_builder =
+            ModelBuilder::new(ModelBuilderType::Builder, config, model, lines, sender);
+        assert!(model_builder.is_applicable())
     }
 }

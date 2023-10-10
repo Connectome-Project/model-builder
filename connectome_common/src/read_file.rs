@@ -30,6 +30,9 @@ mod tests {
 
         let mut lines = read_lines(combined_path).unwrap();
         let lines_iter = lines.next().unwrap().unwrap();
-        assert_eq!(lines_iter,"A connectome is a comprehensive map of neural connections in the brain, and may be thought of as its \"wiring diagram\". ");
+        assert_eq!(
+            lines_iter,
+            "A connectome is a comprehensive map of neural connections in the brain, and may be thought of as its \"wiring diagram\". "
+        );
     }
 }

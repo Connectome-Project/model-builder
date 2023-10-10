@@ -25,10 +25,10 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     let mut handles = Vec::new();
 
     for i in 0..num_cores {
-        let mut client = gremlin_client.clone();
+        let client = gremlin_client.clone();
         let node_pattern = format!("{}", i);
         let handle = tokio::spawn(async move {
-            let new_node = client.create_node(&node_pattern).await;
+            let _ = client.create_node(&node_pattern).await;
             return 0;
         });
         handles.push(handle);

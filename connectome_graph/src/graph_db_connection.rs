@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::{error, vec};
 
 pub struct Node {
-    pattern: String,
+    pub pattern: String,
 }
 
 #[async_trait]

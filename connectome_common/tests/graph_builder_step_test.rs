@@ -29,7 +29,7 @@ fn test_graph_builder_step() {
     });
 
     //create model builder
-    let combined_path: PathBuf = assemble_relative_path("tests\\assets\\example.txt");
+    let combined_path: PathBuf = assemble_relative_path("tests/assets/example.txt");
     println!("\n\n {} \n\n", combined_path.to_str().unwrap());
     let lines: Lines<BufReader<File>> = read_lines(combined_path).unwrap();
     let config = TrainingConfig {};

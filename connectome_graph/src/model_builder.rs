@@ -2,8 +2,8 @@ use crate::{pattern::Pattern, ConnectionType};
 use std::{iter::Peekable, vec::IntoIter};
 
 #[allow(dead_code)]
-pub async fn build_model<Pat: Pattern, D: From<Pat>>(
-    _: ConnectionType,
+pub async fn build_model<Pat: Pattern>(
+    _client: ConnectionType,
     mut data_to_build: Peekable<IntoIter<Pat>>,
 ) -> Result<(), Box<dyn std::error::Error + 'static>> {
     let pattern_so_far = Pat::default();

@@ -20,7 +20,7 @@ use std::fmt::Debug;
 //     }
 // }
 
-pub trait Pattern: Debug + Clone + ToString + Default + Sized {
+pub trait Pattern: Debug + Clone + ToString + Default + Sized + From<String> {
     fn concat(&self, rhs: Self) -> Self;
 }
 

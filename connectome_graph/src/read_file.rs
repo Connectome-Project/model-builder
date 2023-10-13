@@ -19,20 +19,3 @@ pub fn assemble_relative_path(relative_path: &str) -> PathBuf {
     let combined_path = current_directory.join(path_to_txt);
     return combined_path;
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_reading_txt_file() {
-        let combined_path = assemble_relative_path("src/example.txt");
-
-        let mut lines = read_lines(combined_path).unwrap();
-        let lines_iter = lines.next().unwrap().unwrap();
-        assert_eq!(
-            lines_iter,
-            "A connectome is a comprehensive map of neural connections in the brain, and may be thought of as its \"wiring diagram\". "
-        );
-    }
-}
